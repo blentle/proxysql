@@ -37,6 +37,8 @@
 
 #define MONITOR_SQLITE_TABLE_MYSQL_SERVER_AWS_AURORA_FAILOVERS "CREATE TABLE mysql_server_aws_aurora_failovers (writer_hostgroup INT NOT NULL , hostname VARCHAR NOT NULL , inserted_at VARCHAR NOT NULL)"
 
+#define MONITOR_SQLITE_TABLE_MYSQL_SERVERS "CREATE TABLE mysql_servers (hostname VARCHAR NOT NULL , port INT NOT NULL DEFAULT 3306 , status INT CHECK (status IN (0, 1, 2, 3, 4)) NOT NULL DEFAULT 0 , use_ssl INT CHECK (use_ssl IN(0,1)) NOT NULL DEFAULT 0 , PRIMARY KEY (hostname, port) )"
+
 /*
 struct cmp_str {
   bool operator()(char const *a, char const *b) const
@@ -264,6 +266,7 @@ struct mon_metrics_map_idx {
 class MySQL_Monitor {
 	private:
 	std::vector<table_def_t *> *tables_defs_monitor;
+	std::vector<table_def_t *> *tables_defs_monitor_internal;
 	void insert_into_tables_defs(std::vector<table_def_t *> *tables_defs, const char *table_name, const char *table_def);
 	void drop_tables_defs(std::vector<table_def_t *> *tables_defs);
 	void check_and_build_standard_tables(SQLite3DB *db, std::vector<table_def_t *> *tables_defs);
@@ -271,6 +274,8 @@ class MySQL_Monitor {
 	pthread_mutex_t group_replication_mutex; // for simplicity, a mutex instead of a rwlock
 	pthread_mutex_t galera_mutex; // for simplicity, a mutex instead of a rwlock
 	pthread_mutex_t aws_aurora_mutex; // for simplicity, a mutex instead of a rwlock
+	pthread_mutex_t mysql_servers_mutex; // for simplicity, a mutex instead of a rwlock
+
 	//std::map<char *, MyGR_monitor_node *, cmp_str> Group_Replication_Hosts_Map;
 	std::map<std::string, MyGR_monitor_node *> Group_Replication_Hosts_Map;
 	SQLite3_result *Group_Replication_Hosts_resultset;
@@ -303,6 +308,7 @@ class MySQL_Monitor {
 	bool monitor_enabled;
 	SQLite3DB *admindb;	// internal database
 	SQLite3DB *monitordb;	// internal database
+	SQLite3DB *monitor_internal_db;	// internal database
 	MySQL_Monitor();
 	~MySQL_Monitor();
 	void print_version();
@@ -318,6 +324,13 @@ class MySQL_Monitor {
 	void populate_monitor_mysql_server_galera_log();
 	void populate_monitor_mysql_server_aws_aurora_log();
 	void populate_monitor_mysql_server_aws_aurora_check_status();
+	/**
+	 * @brief Helper function that uses the provided resulset for updating the table 'monitor_internal.mysql_servers'.
+	 * @details When supplying 'MySQL_HostGroups_Manager::mysql_servers_to_monitor' resulset as parameter, the
+	 *   mutex 'MySQL_HostGroups_Manager::mysql_servers_to_monitor_mutex' needs to be previously taken.
+	 * @param SQLite3_result The resulset to be used for updating 'monitor_internal.mysql_servers'.
+	 */
+	void update_monitor_mysql_servers(SQLite3_result*);
 	char * galera_find_last_node(int);
 	std::vector<string> * galera_find_possible_last_nodes(int);
 	bool server_responds_to_ping(char *address, int port);

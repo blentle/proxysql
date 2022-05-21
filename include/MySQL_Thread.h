@@ -348,6 +348,7 @@ struct p_th_gauge {
 		mysql_monitor_read_only_interval,
 		mysql_monitor_read_only_timeout,
 		mysql_monitor_writer_is_also_reader,
+		mysql_monitor_replication_lag_group_by_host,
 		mysql_monitor_replication_lag_interval,
 		mysql_monitor_replication_lag_timeout,
 		mysql_monitor_history,
@@ -434,6 +435,7 @@ class MySQL_Threads_Handler
 		//! ProxySQL session wait timeout. Unit: 'ms'.
 		bool monitor_wait_timeout;
 		bool monitor_writer_is_also_reader;
+		bool monitor_replication_lag_group_by_host;
 		//! How frequently a replication lag check is performed. Unit: 'ms'.
 		int monitor_replication_lag_interval;
 		//! Read only check timeout. Unit: 'ms'.
@@ -462,7 +464,6 @@ class MySQL_Threads_Handler
 		int shun_recovery_time_sec;
 		int unshun_algorithm;
 		int query_retries_on_failure;
-		bool client_multi_statements;
 		bool connection_warming;
 		int client_host_cache_size;
 		int client_host_error_counts;
@@ -494,12 +495,12 @@ class MySQL_Threads_Handler
 		bool query_digests_no_digits;
 		bool query_digests_normalize_digest_text;
 		bool query_digests_track_hostname;
+		bool query_digests_keep_comment;
 		int query_digests_grouping_limit;
 		int query_digests_groups_grouping_limit;
 		bool default_reconnect;
 		bool have_compress;
 		bool have_ssl;
-		bool client_found_rows;
 		bool multiplexing;
 //		bool stmt_multiplexing;
 		bool log_unhealthy_connections;
@@ -535,6 +536,7 @@ class MySQL_Threads_Handler
 		int set_query_lock_on_hostgroup;
 		int reset_connection_algorithm;
 		int auto_increment_delay_multiplex;
+		int auto_increment_delay_multiplex_timeout_ms;
 		int long_query_time;
 		int hostgroup_manager_verbose;
 		int binlog_reader_connect_retry_msec;
