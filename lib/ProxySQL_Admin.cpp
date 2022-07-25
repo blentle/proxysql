@@ -1172,7 +1172,10 @@ int ProxySQL_Test___GenerateRandomQueryInDigestTable(int n) {
 	//unsigned long long queries=n;
 	//queries *= 1000;
 	MySQL_Session *sess = new MySQL_Session();
-
+	// When the session is destroyed, client_connections is automatically decreased.
+	// Because this is not a real connection, we artificially increase
+	// client_connections
+	__sync_fetch_and_add(&MyHGM->status.client_connections,1);
 	sess->client_myds = new MySQL_Data_Stream();
 	sess->client_myds->fd=0;
 	sess->client_myds->init(MYDS_FRONTEND, sess, sess->client_myds->fd);
@@ -5946,6 +5949,7 @@ bool ProxySQL_Admin::init() {
 	flush_debug_levels_runtime_to_database(admindb, true);
 #endif /* DEBUG */
 
+	// Set default values for the module variables in the target 'dbs'
 	flush_mysql_variables___runtime_to_database(configdb, false, false, false);
 	flush_mysql_variables___runtime_to_database(admindb, false, true, false);
 
@@ -5954,6 +5958,7 @@ bool ProxySQL_Admin::init() {
 
 	load_or_update_global_settings(configdb);
 
+	// Insert or update the configuration from 'disk'
 	__insert_or_replace_maintable_select_disktable();
 
 	// removing this line of code. It seems redundant
@@ -6319,6 +6324,10 @@ void ProxySQL_Admin::load_or_update_global_settings(SQLite3DB *db) {
 				free(uuid);
 				uuid=NULL;
 			}
+		}
+
+		if (resultset) {
+			delete resultset;
 		}
 	}
 }

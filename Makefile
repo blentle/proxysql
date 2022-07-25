@@ -31,7 +31,7 @@ DEBUG=${ALL_DEBUG}
 #export OPTZ
 #export EXTRALINK
 export MAKE
-export CURVER?=2.4.1
+export CURVER?=2.4.2
 ifneq (,$(wildcard /etc/os-release))
 	DISTRO := $(shell gawk -F= '/^NAME/{print $$2}' /etc/os-release)
 else
@@ -146,7 +146,7 @@ build_tap_test: build_src
 	cd test/tap && OPTZ="${O0} -ggdb -DDEBUG" CC=${CC} CXX=${CXX} ${MAKE}
 
 .PHONY: build_tap_test_debug
-build_tap_test_debug: build_src
+build_tap_test_debug: build_src_debug
 	cd test/tap && OPTZ="${O0} -ggdb -DDEBUG" CC=${CC} CXX=${CXX} ${MAKE} debug
 
 .PHONY: build_src_debug
