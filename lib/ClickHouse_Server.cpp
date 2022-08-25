@@ -98,7 +98,11 @@ inline void ClickHouse_to_MySQL(const Block& block) {
 				is_null = 0;
 			} else {
 				auto s_t = bi.Column()->As<ColumnNullable>();
+#ifdef CXX17
 				cc = s_t->Nested()->GetType().GetCode();
+#else
+				cc = s_t->Type()->GetNestedType()->GetCode();
+#endif // CXX17
 			}
 
 			if (cc >= clickhouse::Type::Code::Int8 && cc <= clickhouse::Type::Code::Float64) {
@@ -1429,7 +1433,7 @@ __end_while_pool:
 		if (S_amll.get_version()!=version) {
 			S_amll.wrlock();
 			version=S_amll.get_version();
-			for (i=0; i<nfds; i++) {
+			for (i=1; i<nfds; i++) {
 				char *add=NULL; char *port=NULL;
 				close(fds[i].fd);
 				c_split_2(socket_names[i], ":" , &add, &port);
